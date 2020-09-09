@@ -83,3 +83,44 @@ def learning_rate_search(model, X, y, cycles=20, lr_list=None, verbose=False):
         print('Accuracy=', highest_acc)
 
     return opt_lr, highest_acc
+
+def max_features_search(model, X, y, cycles=20, max_features_list=None, max_depth=None, verbose=False):
+    
+    if max_features_list is None:
+        max_features_list = [i + 1 for i in range(X.shape[1] -1)]
+        max_features_list.append('sqrt')
+        max_features_list.append('log2')
+        max_features_list.append('auto')
+
+    highest_acc = 0
+    opt_features = 1
+
+    for features in max_features_list:
+        
+        accuracy_list = []
+        for _ in range(20):
+            X_train, X_validation, y_train, y_validation = train_test_split(X, y, train_size=0.8)
+            rf_c = model(max_features= features, max_depth=max_depth)
+            rf_c.fit(X_train, y_train)
+            y_hat = rf_c.predict(X_validation).round()
+
+            acc = 1 - np.mean(y_hat != y_validation)
+            accuracy_list.append(acc)
+        accuracy = np.mean(accuracy_list)
+
+        if accuracy > highest_acc:
+            highest_acc = accuracy
+            opt_features = features
+
+        if verbose:
+            print('Max Features=', features, ':')
+            print('average accuracy:', accuracy)
+            print('accuracy spread:', np.max(accuracy_list) - np.min(accuracy_list))
+
+    if verbose:
+        print('')
+        print('Best cycle:') 
+        print('Max Features=', opt_features)
+        print('Accuracy=', highest_acc)
+
+    return opt_features, highest_acc
